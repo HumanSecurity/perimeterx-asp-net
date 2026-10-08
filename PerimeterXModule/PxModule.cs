@@ -76,6 +76,7 @@ namespace PerimeterX
 		private bool loginCredentialsExtractionEnabled;
 		private CredentialIntelligenceManager loginData;
 		private IVerificationHandler customVerificationHandlerInstance;
+		private IAdditionalActivityHandler additionalActivityHandlerInstance;
 		private ICredentialsExtractionHandler customCredentialsExtraction;
 
         static PxModule()
@@ -117,6 +118,7 @@ namespace PerimeterX
 			blockingScore = config.BlockingScore;
 			appId = config.AppId;
             customVerificationHandlerInstance = PxCustomFunctions.GetCustomVerificationHandler(config.CustomVerificationHandler);
+            additionalActivityHandlerInstance = PxCustomFunctions.GetAdditionalActivityHandler(config.AdditionalActivityHandler);
             suppressContentBlock = config.SuppressContentBlock;
 			challengeEnabled = config.ChallengeEnabled;
 			sensetiveHeaders = config.SensitiveHeaders.Cast<string>().ToArray();
@@ -601,9 +603,10 @@ namespace PerimeterX
 
 		private void VerifyRequest(HttpApplication application)
 		{
+			PxModuleConfigurationSection config = null;
 			try
 			{
-				var config = (PxModuleConfigurationSection)ConfigurationManager.GetSection(PxConstants.CONFIG_SECTION);
+				config = (PxModuleConfigurationSection)ConfigurationManager.GetSection(PxConstants.CONFIG_SECTION);
 				pxContext = new PxContext(application.Context, config);
 				
                 if (loginData != null)
@@ -631,6 +634,7 @@ namespace PerimeterX
 				PxLoggingUtils.LogError(string.Format("Module failed to process request in fault: {0}, passing request", ex.Message));
 				pxContext.PassReason = PassReasonEnum.ERROR;
 				PostPageRequestedActivity(pxContext);
+				InvokeAdditionalActivityHandler(application.Context.Request, config, pxContext);
 			}
 		}
 
@@ -671,6 +675,9 @@ namespace PerimeterX
 			}
 
 			SetPxhdAndVid(pxContext);
+
+			InvokeAdditionalActivityHandler(application.Context.Request, config, pxContext);
+
 			// If implemented, run the customVerificationHandler.
 			if (customVerificationHandlerInstance != null)
 			{
@@ -681,6 +688,28 @@ namespace PerimeterX
 			{
 				BlockRequest(pxContext, config);
 				application.CompleteRequest();
+			}
+		}
+
+		/// <summary>
+		/// Runs the additional activity handler, if one is configured. The handler is observability only:
+		/// it never affects the enforcement decision, and a handler that throws is logged and ignored.
+		/// </summary>
+		private void InvokeAdditionalActivityHandler(HttpRequest httpRequest, PxModuleConfigurationSection config, PxContext pxContext)
+		{
+			if (additionalActivityHandlerInstance == null || pxContext == null || config == null)
+			{
+				return;
+			}
+
+			try
+			{
+				additionalActivityHandlerInstance.Handle(httpRequest, config, pxContext);
+			}
+			catch (Exception ex)
+			{
+				PxLoggingUtils.LogError(string.Format("Encountered an error while running the IAdditionalActivityHandler '{0}': {1}.",
+											  config.AdditionalActivityHandler, ex.Message));
 			}
 		}
 
