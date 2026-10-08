@@ -148,6 +148,46 @@ namespace PerimeterX
 			return null;
 		}
 
+        public static IAdditionalActivityHandler GetAdditionalActivityHandler(string customHandlerName)
+        {
+            if (string.IsNullOrEmpty(customHandlerName))
+            {
+                return null;
+            }
+
+            try
+            {
+                var additionalActivityHandlerType = getAssembliesTypes()
+                             .FirstOrDefault(t => t.GetInterface(typeof(IAdditionalActivityHandler).Name) != null &&
+                                                  t.Name.Equals(customHandlerName) && t.IsClass && !t.IsAbstract);
+
+                if (additionalActivityHandlerType != null)
+                {
+                    var instance = (IAdditionalActivityHandler)Activator.CreateInstance(additionalActivityHandlerType, null);
+                    PxLoggingUtils.LogDebug(string.Format("Successfully loaded IAdditionalActivityHandler '{0}'.", customHandlerName));
+                    return instance;
+                }
+                else
+                {
+                    PxLoggingUtils.LogDebug(string.Format(
+                        "Missing implementation of the configured IAdditionalActivityHandler ('additionalActivityHandler' attribute): {0}.",
+                        customHandlerName));
+                }
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                PxLoggingUtils.LogError(string.Format("Failed to load the IAdditionalActivityHandler '{0}': {1}.",
+                                              customHandlerName, ex.Message));
+            }
+            catch (Exception ex)
+            {
+                PxLoggingUtils.LogError(string.Format("Encountered an error while retrieving the IAdditionalActivityHandler '{0}': {1}.",
+                                              customHandlerName, ex.Message));
+            }
+
+            return null;
+        }
+
         public static ICustomParametersHandler GetCustomParamsHandler(string customHandlerName)
         {
             if (string.IsNullOrEmpty(customHandlerName))

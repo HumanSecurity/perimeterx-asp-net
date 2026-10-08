@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomBehavior\IAdditionalActivityHandler.cs" />
     <Compile Include="CustomBehavior\ICustomParametersHandler.cs" />
     <Compile Include="CustomBehavior\ICredentialsExtractionHandler.cs" />
     <Compile Include="CustomBehavior\ILoginSuccessfulHandler.cs" />
