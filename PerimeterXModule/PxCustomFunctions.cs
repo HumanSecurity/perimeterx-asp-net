@@ -148,10 +148,6 @@ namespace PerimeterX
 			return null;
 		}
 
-        /// <summary>
-        /// Uses reflection to check whether an IAdditionalActivityHandler was implemented by the customer.
-        /// </summary>
-        /// <returns>If found, returns the IAdditionalActivityHandler class instance. Otherwise, returns null.</returns>
         public static IAdditionalActivityHandler GetAdditionalActivityHandler(string customHandlerName)
         {
             if (string.IsNullOrEmpty(customHandlerName))

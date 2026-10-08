@@ -691,10 +691,6 @@ namespace PerimeterX
 			}
 		}
 
-		/// <summary>
-		/// Runs the additional activity handler, if one is configured. The handler is observability only:
-		/// it never affects the enforcement decision, and a handler that throws is logged and ignored.
-		/// </summary>
 		private void InvokeAdditionalActivityHandler(HttpRequest httpRequest, PxModuleConfigurationSection config, PxContext pxContext)
 		{
 			if (additionalActivityHandlerInstance == null || pxContext == null || config == null)
