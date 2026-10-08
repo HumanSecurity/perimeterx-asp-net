@@ -469,6 +469,19 @@ namespace PerimeterX
             }
         }
 
+        [ConfigurationProperty("additionalActivityHandler")]
+        public string AdditionalActivityHandler
+        {
+            get
+            {
+                return (string)this["additionalActivityHandler"];
+            }
+            set
+            {
+                this["additionalActivityHandler"] = value;
+            }
+        }
+
         [ConfigurationProperty("collectorUrl", DefaultValue = "https://collector-{0}.perimeterx.net")]
         public string CollectorUrl
         {
